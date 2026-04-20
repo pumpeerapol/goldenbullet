@@ -427,6 +427,43 @@ var ESC=[1,1.4,1.7,2.0,2.3];
 var currentTab='setup', currentTradeResult='full_win';
 var riskInputDirty=false;
 
+var STORAGE_KEY='goldenBullet:v1';
+function saveState(){
+  try{
+    if(!cfg||!cfg.accountSize) return;
+    localStorage.setItem(STORAGE_KEY,JSON.stringify({cfg:cfg,trades:trades,balance:balance,sessionPnl:sessionPnl,hwm:hwm,lastSugRisk:lastSugRisk}));
+  }catch(e){}
+}
+function loadState(){
+  try{
+    var raw=localStorage.getItem(STORAGE_KEY);
+    if(!raw) return false;
+    var s=JSON.parse(raw);
+    if(!s||!s.cfg||!s.cfg.accountSize) return false;
+    cfg=s.cfg; trades=Array.isArray(s.trades)?s.trades:[];
+    balance=typeof s.balance==='number'?s.balance:cfg.accountSize;
+    sessionPnl=typeof s.sessionPnl==='number'?s.sessionPnl:0;
+    hwm=typeof s.hwm==='number'?s.hwm:cfg.accountSize;
+    lastSugRisk=typeof s.lastSugRisk==='number'?s.lastSugRisk:0;
+    return true;
+  }catch(e){ return false; }
+}
+function repopulateSetupForm(){
+  if(!cfg||!cfg.accountSize) return;
+  el('accountSize').value=cfg.accountSize;
+  el('profitTarget').value=+(cfg.profitTarget*100).toFixed(4);
+  el('maxDD').value=+(cfg.maxDD*100).toFixed(4);
+  el('maxDaily').value=+(cfg.maxDaily*100).toFixed(4);
+  el('maxRiskPct').value=+(cfg.maxRiskPct*100).toFixed(4);
+  el('trailingDD').value=cfg.trailing?'yes':'no';
+  el('tradesToPass').value=cfg.tradesToPass;
+  el('winRate').value=+(cfg.winRate*100).toFixed(4);
+  el('tp1rr').value=cfg.tp1rr;
+  el('tp1vol').value=+(cfg.tp1vol*100).toFixed(4);
+  el('tp2rr').value=cfg.tp2rr;
+  el('tp2vol').value=+(cfg.tp2vol*100).toFixed(4);
+}
+
 function el(id){ return document.getElementById(id); }
 function fmtAbs(n){ return '$'+Math.abs(n).toLocaleString('en',{maximumFractionDigits:0}); }
 function fmtSigned(n){ return (n<0?'-':'')+'$'+Math.abs(n).toLocaleString('en',{maximumFractionDigits:0}); }
@@ -924,6 +961,7 @@ function deleteTrade(i){
   renumber();
   updateDashboard(); renderLog();
   autoRunSim();
+  saveState();
 }
 
 function initDashboard(){
@@ -958,6 +996,7 @@ function initDashboard(){
 
   updateDashboard(); renderLog(); showTab('dashboard');
   autoRunSim();
+  saveState();
 }
 
 function logTrade(){
@@ -998,6 +1037,7 @@ function logTrade(){
     riskInputDirty=false;
     updateDashboard(); renderLog();
     autoRunSim();
+    saveState();
   }
 
   if(warnings.length>0){
@@ -1019,6 +1059,7 @@ function newDay(){
   trades.push({result:'day_reset',riskPct:0,pnl:0,balance:balance,note:'New day',isDivider:true});
   sessionPnl=0; updateDashboard(); renderLog();
   autoRunSim();
+  saveState();
 }
 
 function showAlert(message){
@@ -1088,6 +1129,7 @@ function resetAll(){
     updateDashboard();
     renderLog();
     autoRunSim();
+    saveState();
     window.scrollTo({top:0,behavior:'smooth'});
     if(!isDesktop()) showTab('dashboard');
   });
@@ -1259,5 +1301,13 @@ window.addEventListener('resize',function(){
 calcRGain();
 validateSetup();
 
-if(isDesktop()){ openDrawer(); } else { showTab('setup'); }
+if(loadState()){
+  repopulateSetupForm();
+  validateSetup();
+  updateDashboard(); renderLog();
+  showTab('dashboard');
+  autoRunSim();
+} else {
+  if(isDesktop()){ openDrawer(); } else { showTab('setup'); }
+}
 </script>
