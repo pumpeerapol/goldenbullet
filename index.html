@@ -1,3 +1,7 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
 <title>Golden Bullet — Prop Firm Challenge Tracker</title>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
@@ -18,7 +22,7 @@
 --bg:#0f0f13;--bg2:#17171e;--bg3:#1e1e28;--bg4:#252532;
 --border:#2e2e3e;--border2:#3a3a50;
 --gold:#c9a84c;--gold2:#e8c76a;--gold-dim:#7a6330;
---text:#f0eee8;--text2:#a09e9a;--text3:#6a6866;
+--text:#f0eee8;--text2:#a09e9a;--text3:#96938e;
 --green:#2ecc8e;--green2:#56e3a8;--green-bg:#0d2b1e;--green-border:#1a5c3a;
 --red:#e05555;--red-bg:#2b0d0d;--red-border:#5c1a1a;
 --amber:#e8a020;--amber-bg:#2b1d08;--amber-border:#5c3a10;
@@ -168,8 +172,8 @@ input[type="number"]{-moz-appearance:textfield}
   .nav{display:none}
   #drawer-toggle{display:inline-flex}
   #tab-dashboard,#tab-log,#tab-simulation{display:block !important}
-  #tab-setup{position:fixed;top:0;left:0;bottom:0;width:420px;background:var(--bg);border-right:1px solid var(--border);padding:1.5rem 1.25rem;overflow-y:auto;transform:translateX(-100%);transition:transform .3s ease;z-index:100;display:block !important}
-  #tab-setup.drawer-open{transform:translateX(0)}
+  #tab-setup{position:fixed;top:0;left:0;bottom:0;width:420px;background:var(--bg);border-right:1px solid var(--border);padding:1.5rem 1.25rem;overflow-y:auto;visibility:hidden;transform:translateX(-100%);transition:transform .3s ease;z-index:100;display:block !important}
+  #tab-setup.drawer-open{visibility:visible;transform:translateX(0)}
   #tab-setup .g3{grid-template-columns:1fr 1fr}
   #drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .3s;z-index:99}
   #drawer-overlay.drawer-open{opacity:1;pointer-events:auto}
@@ -194,7 +198,13 @@ input[type="number"]{-moz-appearance:textfield}
 .endstate{padding:1.5rem 1rem;text-align:center;border-radius:14px;margin-bottom:1rem}
 .endstate-pass{background:linear-gradient(135deg,#0d2b1e,#0a2018);border:1px solid var(--green-border)}
 .endstate-blow{background:linear-gradient(135deg,#2b0d0d,#200a0a);border:1px solid var(--red-border)}
+
+:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+summary{cursor:pointer;min-height:32px}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
 </style>
+</head>
+<body>
 
 <div class="app">
 <div class="hdr">
@@ -232,7 +242,7 @@ input[type="number"]{-moz-appearance:textfield}
         <div><label>Max daily loss (%)</label><input id="maxDaily" type="number" value="5" step="0.1"/></div>
       </div>
       <div class="g2" style="margin-bottom:10px">
-        <div><label>Drawdown type</label><select id="trailingDD"><option value="no">Static</option><option value="yes">Trailing (EOD)</option></select></div>
+        <div><label>Drawdown type</label><select id="trailingDD"><option value="no">Static</option><option value="yes">Trailing (per-trade high)</option></select></div>
         <div><label>Trades to pass</label><select id="tradesToPass"><option value="1">1 (golden bullet)</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></div>
       </div>
       <div style="max-width:260px">
@@ -301,7 +311,7 @@ input[type="number"]{-moz-appearance:textfield}
             <div id="sugRiskPct" class="rb-pct">--</div>
             <div id="sugRiskDollar" class="rb-dollar">--</div>
             <div id="sugRiskCapTag" class="rb-cap" style="display:none"></div>
-            <div class="rb-foot">Follow this. Do not override it.</div>
+            <div class="rb-foot">Model estimate · check your trading rules before entry.</div>
           </div>
           <div class="rb-context" id="rbContext" style="visibility:hidden">
             <div class="rb-scenario">
@@ -387,17 +397,25 @@ input[type="number"]{-moz-appearance:textfield}
       <div class="card">
         <div class="stitle">Monte Carlo simulation</div>
         <div style="font-size:12px;color:var(--text3);margin-bottom:1rem;line-height:1.6">
-          Auto-runs when the challenge starts and after every logged trade. 1,000 randomised paths using your setup (daily limits, DD caps, max-risk cap, escalation). Pass + Blow = 100%.
+          Auto-runs when the challenge starts and after every logged trade. 1,000 randomised paths using your setup (daily limits, DD caps, max-risk cap, escalation). Pass, drawdown breach, and unfinished paths are reported separately. Horizon: 500 trades.
         </div>
         <div id="simSetupWarning" class="softwarn" style="display:none;margin-bottom:1rem">Start a challenge first from Setup.</div>
         <button class="btn btn-ghost" id="btnRunSim" style="width:100%">Re-run simulation</button>
       </div>
       <div id="simResults" style="display:none">
+        <div class="card" style="margin-bottom:1rem">
+          <div class="mlabel">Unfinished within 500 trades</div><div class="mval" id="simUnfinishedRate">--</div>
+          <div class="msub">Neither passed nor breached drawdown. Percentages may differ slightly from 100% due to rounding.</div>
+          <details style="margin-top:14px"><summary>Simulation assumptions</summary>
+            <p style="font-size:13px;line-height:1.7;color:var(--text2)">Independent outcomes; fixed win rate; TP outcome percentages split winning trades, not position size. Daily loss usage accumulates losses and resets when less than 0.5% of starting capital remains. No fees, slippage or intratrade equity. Trailing drawdown follows each trade's high balance. This model does not enforce session hours or your personal daily stop rules.</p>
+          </details>
+          <div id="simChartError" role="status" class="softwarn" style="display:none">Chart library unavailable. Numerical results are still shown; reconnect and re-run for the chart.</div>
+        </div>
         <div class="g4" style="margin-bottom:1rem">
           <div class="metric"><div class="mlabel">Pass rate</div><div class="mval" id="simPassRate" style="color:var(--green)">--</div></div>
-          <div class="metric"><div class="mlabel">Blow rate</div><div class="mval" id="simBlowRate" style="color:var(--red)">--</div></div>
+          <div class="metric"><div class="mlabel">Drawdown breach</div><div class="mval" id="simBlowRate" style="color:var(--red)">--</div></div>
           <div class="metric"><div class="mlabel">Avg trades (pass)</div><div class="mval" id="simAvgPass">--</div></div>
-          <div class="metric"><div class="mlabel">Avg trades (blow)</div><div class="mval" id="simAvgBlow">--</div></div>
+          <div class="metric"><div class="mlabel">Avg trades (breach)</div><div class="mval" id="simAvgBlow">--</div></div>
         </div>
         <div class="card">
           <div class="stitle">Outcome distribution</div>
@@ -419,6 +437,14 @@ input[type="number"]{-moz-appearance:textfield}
     <div id="tab-log" style="display:none">
       <div class="card">
         <div class="stitle">Trade history</div>
+        <p style="font-size:12px;color:var(--text2)">Saved in this browser. Download a backup before clearing browser data.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin:12px 0">
+          <button class="btn btn-ghost" id="btnBackup">Download backup</button>
+          <button class="btn btn-ghost" id="btnCSV">Export CSV</button>
+          <button class="btn btn-ghost" id="btnRestore">Restore backup</button>
+          <input type="file" id="restoreFile" accept="application/json,.json" hidden>
+        </div>
+        <div id="storageStatus" role="status" style="font-size:12px;color:var(--amber);margin-bottom:12px"></div>
         <div style="overflow-x:auto">
           <div class="trow" style="font-size:10px;color:var(--text3);font-weight:600;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border2)">
             <span>#</span><span>Type</span><span>Notes</span><span>Risk</span><span>P&amp;L</span><span></span>
@@ -446,7 +472,8 @@ function saveState(){
   try{
     if(!cfg||!cfg.accountSize) return;
     localStorage.setItem(STORAGE_KEY,JSON.stringify({cfg:cfg,trades:trades,balance:balance,sessionPnl:sessionPnl,hwm:hwm,lastSugRisk:lastSugRisk}));
-  }catch(e){}
+    el('storageStatus').textContent='Saved on this device';
+  }catch(e){el('storageStatus').textContent='Browser storage unavailable. Download a backup to keep your trades.';}
 }
 function loadState(){
   try{
@@ -981,11 +1008,12 @@ function deleteTrade(i){
 function initDashboard(){
   if(!validateSetup()){ showAlert('TP volumes must total 100%. Fix before starting.'); return; }
   var acct=parseFloat(el('accountSize').value);
-  if(!acct||acct<=0){showAlert('Enter a valid account size');return;}
+  if(!Number.isFinite(acct)||acct<=0){showAlert('Enter a valid account size');return;}
   var pt=parseFloat(el('profitTarget').value);
   var md=parseFloat(el('maxDD').value);
   var mdl=parseFloat(el('maxDaily').value);
-  if(!pt||!md||!mdl){showAlert('All percentage fields are required');return;}
+  if(![pt,md,mdl].every(function(n){return Number.isFinite(n)&&n>0&&n<=100;})){showAlert('Percentages must be greater than 0 and at most 100');return;}
+  if(![el('tp1rr'),el('tp2rr')].every(function(e){return Number.isFinite(Number(e.value))&&Number(e.value)>0;})){showAlert('Both R:R values must be positive');return;}
   var wrVal=parseFloat(el('winRate').value);
   if(isNaN(wrVal)||wrVal<0||wrVal>100){showAlert('Win rate must be between 0 and 100');return;}
   var maxRVal=parseFloat(el('maxRiskPct').value);
@@ -1020,7 +1048,7 @@ function logTrade(){
   if(!riskPctInput||riskPctInput<=0){showAlert('Enter a valid risk %');return;}
   if(pnlStr===''){showAlert('Enter actual P&L');return;}
   var pnl=parseFloat(pnlStr);
-  if(isNaN(pnl)){showAlert('P&L must be a number');return;}
+  if(!Number.isFinite(pnl)){showAlert('P&L must be a number');return;}
 
   // Pre-trade validation: warn on manual override breaches, but allow logging (reality-first).
   var warnings=[];
@@ -1030,7 +1058,7 @@ function logTrade(){
     warnings.push('Risk '+riskPctInput.toFixed(2)+'% exceeds '+(cfg.maxRiskPct*100).toFixed(1)+'% cap ('+fmtAbs(hardCapDollar)+').');
   }
   if(pnl<0){
-    var projectedDaily=Math.max(0,-sessionPnl)+(-pnl);
+    var projectedDaily=Math.max(0,-(sessionPnl+pnl));
     var dailyMax=cfg.maxDaily*cfg.accountSize;
     if(projectedDaily>dailyMax+0.01){
       warnings.push('Loss '+fmtAbs(-pnl)+' pushes daily to '+fmtAbs(projectedDaily)+', breaching '+fmtAbs(dailyMax)+' limit. FAILS challenge.');
@@ -1063,9 +1091,7 @@ function logTrade(){
 
 function autoRunSim(){
   if(!cfg.accountSize) return;
-  if(balance>=cfg.targetBalance) return;
-  if(getDDRemain(balance,hwm)<=0) return;
-  setTimeout(function(){ try{ runSimulation(); } catch(e){} },0);
+  setTimeout(function(){ try{ runSimulation(); } catch(e){showAlert('Simulation could not complete. Your logged trades are preserved.');} },0);
 }
 
 function newDay(){
@@ -1154,6 +1180,29 @@ function pctile(arr,p){
   return s[Math.floor(p/100*(s.length-1))];
 }
 
+// Pure path runner with injectable randomness for deterministic regression tests.
+function simulatePath(random, maxTrades){
+  var sB=balance, sDU=Math.max(0,-sessionPnl), sSt=lossStreak(), sH=hwm;
+  var path=[sB], tc=0, outcome='unfinished';
+  var dailyMax=cfg.maxDaily*cfg.accountSize;
+  while(tc<maxTrades){
+    if(getDDRemain(sB,sH)<=0){outcome='blow';break;}
+    if(sB>=cfg.targetBalance){outcome='pass';break;}
+    if(dailyMax-sDU<=cfg.accountSize*0.005) sDU=0;
+    var sr=simRiskCalc(sB,sDU,sSt,sH);
+    if(sr<=0) break;
+    var r=random();
+    if(r<cfg.winRate*cfg.tp2Rate){sB+=sr*cfg.tp2rr;sSt=0;}
+    else if(r<cfg.winRate*(cfg.tp2Rate+cfg.tp1Rate)){sB+=sr*cfg.tp1rr;sSt=0;}
+    else{sB-=sr;sSt++;sDU+=sr;}
+    sH=Math.max(sH,sB);tc++;
+    path.push(Math.min(Math.round(sB),cfg.targetBalance));
+    if(getDDRemain(sB,sH)<=0){outcome='blow';break;}
+    if(sB>=cfg.targetBalance){outcome='pass';break;}
+  }
+  return {path:path,finalBal:Math.round(Math.min(sB,cfg.targetBalance)),outcome:outcome,trades:tc};
+}
+
 function runSimulation(){
   if(!cfg.accountSize){ el('simSetupWarning').style.display='block'; return; }
   el('simSetupWarning').style.display='none';
@@ -1162,50 +1211,15 @@ function runSimulation(){
   if(!isNaN(liveWR)&&liveWR>=0&&liveWR<=100) cfg.winRate=liveWR/100;
 
   var NUM_PATHS=1000;
-  var pWin=cfg.winRate*cfg.tp2Rate;
-  var pPartial=cfg.winRate*cfg.tp1Rate;
-
-  var startBal=balance>0?balance:cfg.accountSize;
-  var startDU=Math.max(0,-sessionPnl);
-  var startSt=lossStreak();
-  var startHwm=hwm>0?hwm:cfg.accountSize;
-  var dailyMax=cfg.maxDaily*cfg.accountSize;
-  var dailySepThresh=cfg.accountSize*0.005;
-
-  var allPaths=[], passCount=0, blowCount=0, passTrades=[], blowTrades=[];
+  var allPaths=[],passCount=0,blowCount=0,unfinishedCount=0,passTrades=[],blowTrades=[];
   var maxLen=0;
-
   for(var p=0;p<NUM_PATHS;p++){
-    var path=[startBal];
-    var sB=startBal, sDU=startDU, sSt=startSt, sH=startHwm;
-    var tc=0;
-    var outcome='';
-
-    while(tc<500){
-      var ddr=getDDRemain(sB,sH);
-      if(ddr<=0){outcome='blow';break;}
-      if(dailyMax-sDU<=dailySepThresh) sDU=0;
-      var sr=simRiskCalc(sB,sDU,sSt,sH);
-      if(sr<=0){outcome='blow';break;}
-      var r=Math.random();
-      if(r<pWin){
-        sB+=sr*cfg.tp2rr; sSt=0;
-      } else if(r<pWin+pPartial){
-        sB+=sr*cfg.tp1rr; sSt=0;
-      } else {
-        sB-=sr; sSt++; sDU+=sr;
-      }
-      if(sB>sH) sH=sB;
-      tc++;
-      path.push(Math.min(Math.round(sB),cfg.targetBalance));
-      if(sB>=cfg.targetBalance){outcome='pass';break;}
-      if(getDDRemain(sB,sH)<=0){outcome='blow';break;}
-    }
-    if(!outcome) outcome='blow';
-    if(outcome==='pass'){ passCount++; passTrades.push(tc); }
-    else { blowCount++; blowTrades.push(tc); }
-    if(path.length>maxLen) maxLen=path.length;
-    allPaths.push({path:path, finalBal:Math.round(Math.min(sB,cfg.targetBalance))});
+    var result=simulatePath(Math.random,500);
+    if(result.outcome==='pass'){passCount++;passTrades.push(result.trades);}
+    else if(result.outcome==='blow'){blowCount++;blowTrades.push(result.trades);}
+    else unfinishedCount++;
+    maxLen=Math.max(maxLen,result.path.length);
+    allPaths.push(result);
   }
 
   allPaths.forEach(function(obj){
@@ -1213,7 +1227,7 @@ function runSimulation(){
   });
 
   var allTermination=[].concat(passTrades).concat(blowTrades).sort(function(a,b){return a-b;});
-  var cutoff=allTermination.length?allTermination[Math.floor(allTermination.length*0.95)]:50;
+  var cutoff=unfinishedCount?500:allTermination.length?allTermination[Math.floor(allTermination.length*0.95)]:50;
   var displayLen=Math.min(cutoff+2,maxLen);
 
   var p25=[],p50=[],p75=[],labels=[];
@@ -1237,8 +1251,9 @@ function runSimulation(){
     beLine.push(be);
   }
 
-  el('simPassRate').textContent=Math.round(passCount/NUM_PATHS*100)+'%';
-  el('simBlowRate').textContent=Math.round(blowCount/NUM_PATHS*100)+'%';
+  el('simUnfinishedRate').textContent=(unfinishedCount/NUM_PATHS*100).toFixed(1)+'%';
+  el('simPassRate').textContent=(passCount/NUM_PATHS*100).toFixed(1)+'%';
+  el('simBlowRate').textContent=(blowCount/NUM_PATHS*100).toFixed(1)+'%';
   el('simAvgPass').textContent=passTrades.length?Math.round(passTrades.reduce(function(a,b){return a+b;},0)/passTrades.length):'--';
   el('simAvgBlow').textContent=blowTrades.length?Math.round(blowTrades.reduce(function(a,b){return a+b;},0)/blowTrades.length):'--';
   el('simResults').style.display='block';
@@ -1254,6 +1269,9 @@ function runSimulation(){
     {data:dLine,borderColor:'rgba(224,85,85,0.65)',borderWidth:1.5,borderDash:[6,4],pointRadius:0,fill:false}
   ];
 
+  el('simChartError').style.display=typeof Chart==='undefined'?'block':'none';
+  if(typeof Chart==='undefined') return;
+  if(cfg.trailing) datasets.pop();
   if(simChartInst) simChartInst.destroy();
   simChartInst=new Chart(el('simChart').getContext('2d'),{
     type:'line',
@@ -1273,6 +1291,57 @@ function runSimulation(){
     }
   });
 }
+
+function downloadFile(name,content,type){
+  var url=URL.createObjectURL(new Blob([content],{type:type}));
+  var a=document.createElement('a');a.href=url;a.download=name;a.click();
+  setTimeout(function(){URL.revokeObjectURL(url);},1000);
+}
+function validateBackup(data){
+  if(!data||data.app!=='goldenbullet'||data.version!==1||!data.state) throw new Error('Unsupported backup');
+  var c=data.state.cfg,ts=data.state.trades;
+  if(!c||!Array.isArray(ts)||ts.length>100000) throw new Error('Invalid backup');
+  ['accountSize','profitTarget','maxDD','maxDaily','maxRiskPct','tradesToPass','tp1rr','tp2rr'].forEach(function(k){if(!Number.isFinite(c[k])||c[k]<=0)throw new Error('Invalid '+k);});
+  ['profitTarget','maxDD','maxDaily','maxRiskPct'].forEach(function(k){if(c[k]>1)throw new Error('Invalid '+k);});
+  ['winRate','tp1vol','tp2vol','tp1Rate','tp2Rate'].forEach(function(k){if(!Number.isFinite(c[k])||c[k]<0||c[k]>1)throw new Error('Invalid '+k);});
+  if(Math.abs(c.tp1Rate+c.tp2Rate-1)>0.00001||Math.abs(c.tp1vol+c.tp2vol-1)>0.00001||typeof c.trailing!=='boolean') throw new Error('Invalid configuration');
+  ts.forEach(function(t){if(!t||typeof t.note!=='string'||typeof t.isDivider!=='boolean'||(!t.isDivider&&(!Number.isFinite(t.pnl)||!Number.isFinite(t.riskPct)||t.riskPct<=0||!['full_win','partial','loss'].includes(t.result))))throw new Error('Invalid trade');});
+  c.targetBalance=c.accountSize*(1+c.profitTarget);
+  return {cfg:c,trades:ts};
+}
+function csvCell(value){
+  var v=String(value==null?'':value);
+  if(/^[=+@\-\t\r]/.test(v)) v="'"+v;
+  return '"'+v.replace(/"/g,'""')+'"';
+}
+function exportBackup(){
+  if(!cfg.accountSize){showAlert('Start a challenge first.');return;}
+  downloadFile('goldenbullet-backup.json',JSON.stringify({app:'goldenbullet',version:1,exportedAt:new Date().toISOString(),state:{cfg:cfg,trades:trades}},null,2),'application/json');
+}
+function exportCSV(){
+  var rows=[['Trade','Result','Risk %','P&L','Balance','Notes']];
+  trades.forEach(function(t){rows.push([t.n,t.result,t.riskPct,t.pnl,t.balance,t.note]);});
+  downloadFile('goldenbullet-trades.csv',rows.map(function(row){return row.map(csvCell).join(',');}).join('\r\n'),'text/csv;charset=utf-8');
+}
+el('btnBackup').addEventListener('click',exportBackup);
+el('btnCSV').addEventListener('click',exportCSV);
+el('btnRestore').addEventListener('click',function(){el('restoreFile').click();});
+el('restoreFile').addEventListener('change',async function(){
+  var file=this.files[0];this.value='';if(!file)return;
+  try{
+    if(file.size>10000000)throw new Error('Backup is too large');
+    var restored=validateBackup(JSON.parse(await file.text()));
+    showConfirm('Replace the current challenge with '+restored.trades.length+' backup entries? Download your current backup first if needed.',function(){
+      cfg=restored.cfg;trades=restored.trades;rebuildFromTrades();renumber();repopulateSetupForm();
+      validateSetup();updateDashboard();renderLog();saveState();showTab('dashboard');autoRunSim();
+    });
+  }catch(e){showAlert('Backup not restored: '+e.message);}
+});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&isDesktop())closeDrawer();});
+document.querySelectorAll('label').forEach(function(label){
+  var input=label.parentElement.querySelector('input,select');
+  if(input&&input.id)label.htmlFor=input.id;
+});
 
 el('nb-setup').addEventListener('click',function(){showTab('setup');});
 el('nb-dashboard').addEventListener('click',function(){showTab('dashboard');});
@@ -1325,3 +1394,5 @@ if(loadState()){
   if(isDesktop()){ openDrawer(); } else { showTab('setup'); }
 }
 </script>
+</body>
+</html>
