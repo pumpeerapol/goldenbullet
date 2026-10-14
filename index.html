@@ -169,9 +169,9 @@ input[type="number"]{-moz-appearance:textfield}
   #col-side .card::-webkit-scrollbar{width:6px}
   #col-side .card::-webkit-scrollbar-track{background:transparent}
   #col-side .card::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
-  .nav{display:none}
+  .nav{display:flex}
   #drawer-toggle{display:inline-flex}
-  #tab-dashboard,#tab-log,#tab-simulation{display:block !important}
+
   #tab-setup{position:fixed;top:0;left:0;bottom:0;width:420px;background:var(--bg);border-right:1px solid var(--border);padding:1.5rem 1.25rem;overflow-y:auto;visibility:hidden;transform:translateX(-100%);transition:transform .3s ease;z-index:100;display:block !important}
   #tab-setup.drawer-open{visibility:visible;transform:translateX(0)}
   #tab-setup .g3{grid-template-columns:1fr 1fr}
@@ -202,6 +202,38 @@ input[type="number"]{-moz-appearance:textfield}
 :focus-visible{outline:3px solid var(--gold);outline-offset:3px}
 summary{cursor:pointer;min-height:32px}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+
+.suite-nav{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
+.suite-nav a{font:500 12px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;text-decoration:none;color:#a9b2af;padding:9px 13px;border-radius:7px;transition:background .2s}
+.suite-nav a:hover{background:#222b2a;color:#f0eee5}
+.suite-nav a[aria-current=page]{background:#29312d;color:#e8c986}
+.eyebrow{font:600 10px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:2.3px;text-transform:uppercase;color:#cbb985}
+.page-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;padding:36px 0 30px}
+.page-hero h1{font:400 clamp(32px,4vw,52px)/1.1 Georgia,serif;color:#f4f1e8;letter-spacing:-1.5px;margin:10px 0 12px}
+.page-hero p{font:400 14px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#a5afaa;max-width:490px}
+.local-tag{font:500 11px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#a5afaa;white-space:nowrap;padding:8px 12px;border:1px solid #34413c;border-radius:30px}
+.local-tag:before{content:"";display:inline-block;width:5px;height:5px;background:#8fad9b;border-radius:50%;margin:0 7px 1px 0}
+@media(max-width:600px){.page-hero{display:block;padding:28px 0}.local-tag{display:inline-block;margin-top:16px}.suite-nav a{padding:8px 10px}}
+
+:root{--bg:#111514;--bg2:#191e1c;--bg3:#202622;--bg4:#272f29;--border:#303a33;--border2:#465147;--gold:#d0b47c;--gold2:#e8cd95;--text:#efeee7;--text2:#bac1b7;--text3:#98a494}
+body{background:radial-gradient(ellipse at 80% 0%,#34302455,transparent 45%),var(--bg)}
+.app{max-width:1360px;padding:28px 36px 80px}
+.hdr{gap:13px;margin-bottom:0;border-bottom:1px solid var(--border);padding-bottom:23px}
+.hdr .suite-nav{margin-left:40px}.logo-circle{font:italic 27px Georgia;width:36px;height:39px;background:var(--gold2);border-radius:9px 2px 9px 2px}
+.logo-title{font-size:15px;font-weight:600}.logo-sub{font-size:10px;margin-top:5px}
+.page-hero{padding:38px 0 32px}.page-hero h1{font-size:44px}.nav{max-width:610px;background:transparent;border:0;border-bottom:1px solid var(--border);padding:0;gap:20px;border-radius:0;margin-bottom:25px}
+.nav-btn{flex:initial;min-width:90px;padding:13px 4px;border-radius:0;font-size:13px;font-weight:500}
+.nav-btn.active{background:transparent;box-shadow:none;color:var(--gold2)}.nav-btn.active::before{left:0;right:0;bottom:-1px;height:2px}
+.riskbox{background:linear-gradient(115deg,#343322,#252b22);border:1px solid #5b5b3d;padding:28px 30px;border-radius:14px;margin-bottom:18px}
+.riskbox::before{display:none}.rb-main{text-align:left}.rb-label{font-size:10px;letter-spacing:1.8px;color:#d5c798}.rb-pct{font-size:64px;font-weight:500;letter-spacing:-3px;color:#f2dfb2;font-variant-numeric:tabular-nums}.rb-dollar{font-size:22px;color:#d7d9c6;margin-top:6px}.rb-cap{font-size:10px;letter-spacing:.3px;color:#c4bd9a}.rb-foot{font-size:11px;margin-top:14px;color:#b4b9a6}
+.rb-context{border-color:#566047}.rb-stitle{font-size:10px}.rb-line{padding:5px 0}.metric{border-radius:10px;background:#1d2520;padding:18px 16px}.mlabel{font-size:10px;letter-spacing:.7px}.mval{font-size:25px;font-weight:500;letter-spacing:-.5px;font-variant-numeric:tabular-nums;margin-top:8px}.msub{font-size:11px;line-height:1.6}
+.card{padding:22px;border-radius:12px;background:#171f1a}.stitle{font-size:10px;color:#b7c0ae;letter-spacing:1.4px}.g4,.g3{gap:12px}.btn{border-radius:7px;font-weight:500;font-size:13px;box-shadow:none}.btn-gold{background:#dfc48c;box-shadow:none}.btn-gold:hover{background:#ead5a7;transform:none;box-shadow:none}
+input,select{border-radius:6px;background:#111b14;border-color:#3a483b;font-size:14px;min-height:43px}label{font-size:11px;color:#b5c0ad;letter-spacing:.2px}.hintbox{font-size:12px;background:#243025;color:#b5c0ad}.seg{background:#111b14;border-color:#374336}.seg-btn{font-size:12px}
+.scrow{padding:11px 0}.trow{padding:12px 0}.softinfo{background:#243025}.nav-btn:hover{color:#e8cd95}.view-simulation,.view-log{grid-template-columns:1fr!important}.view-simulation #col-main{max-width:1120px}.view-log #col-side{position:static!important}.view-log #col-side .card{max-height:none!important}
+@media(min-width:820px){#layout{grid-template-columns:minmax(0,1fr) 340px;gap:24px}#nb-setup{display:none}#col-side .card{max-height:none}#col-side{top:24px}.g4{grid-template-columns:repeat(4,1fr)}.rb-grid{grid-template-columns:1.1fr 1fr}.rb-context{border-top:0;border-left:1px solid #566047;padding:0 0 0 25px}}
+@media(max-width:1050px) and (min-width:820px){#layout{grid-template-columns:minmax(0,1fr) 280px;gap:16px}.g4{grid-template-columns:1fr 1fr}.rb-grid{grid-template-columns:1fr}.rb-context{border-left:0;padding:12px 0 0;border-top:1px solid #566047}}
+@media(max-width:819px){.app{padding:20px 18px 90px}.hdr{flex-wrap:wrap}.hdr .suite-nav{order:4;width:100%;margin:5px 0 0}.page-hero h1{font-size:35px}.page-hero{padding:27px 0}.nav{gap:10px;justify-content:space-between}.nav-btn{min-width:0;font-size:12px;padding:12px 8px}.riskbox{padding:24px}.rb-pct{font-size:58px}.card{padding:20px}.g4{grid-template-columns:1fr 1fr}.mval{font-size:23px}}
+
 </style>
 </head>
 <body>
@@ -213,11 +245,13 @@ summary{cursor:pointer;min-height:32px}
     <div class="logo-title">Golden Bullet</div>
     <div class="logo-sub">Prop firm challenge tracker</div>
   </div>
+<nav class="suite-nav" aria-label="Apps"><a href="../sessionprotocol/" >Session</a><a href="../goldenbullet/" aria-current="page">Challenge</a><a href="../riskcapitalsimulator/" >Simulator</a></nav>
   <div class="hdr-spacer"></div>
   <button id="drawer-toggle" class="btn btn-gold btn-sm">⚙ Setup</button>
 </div>
 
-<div class="nav">
+<section class="page-hero"><div><div class="eyebrow">Challenge workspace</div><h1>Keep the target in sight.</h1><p>Your challenge, risk budget, and next decision. All in one place.</p></div><div class="local-tag">Saved on this device</div></section>
+<div class="nav" aria-label="Workspace sections">
   <button class="nav-btn active" id="nb-setup">Setup</button>
   <button class="nav-btn" id="nb-dashboard">Dashboard</button>
   <button class="nav-btn" id="nb-log">Trade Log</button>
@@ -307,7 +341,7 @@ summary{cursor:pointer;min-height:32px}
       <div id="riskboxWrap" class="riskbox">
         <div class="rb-grid">
           <div class="rb-main">
-            <div class="rb-label">Suggested risk — next trade</div>
+            <div class="rb-label">Next trade · suggested risk</div>
             <div id="sugRiskPct" class="rb-pct">--</div>
             <div id="sugRiskDollar" class="rb-dollar">--</div>
             <div id="sugRiskCapTag" class="rb-cap" style="display:none"></div>
@@ -532,10 +566,16 @@ function closeDrawer(){
 function showTab(t){
   currentTab=t;
   if(isDesktop()){
-    if(t==='setup'){ openDrawer(); } else { closeDrawer(); }
-    updateMobileCta();
-    return;
+    if(t==='setup'){ openDrawer(); return; }
+    closeDrawer();
+    ['dashboard','log','simulation'].forEach(function(x){el('tab-'+x).style.display=(x===t||(x==='log'&&t==='dashboard'))?'block':'none';});
+    el('col-main').style.display=t==='log'?'none':'';
+    el('col-side').style.display=t==='simulation'?'none':'';
+    el('layout').className='view-'+t;
+    ['setup','dashboard','log','simulation'].forEach(function(x){el('nb-'+x).classList.toggle('active',x===t);});
+    updateMobileCta();return;
   }
+  el('col-main').style.display='';el('col-side').style.display='';el('layout').className='';
   ['setup','dashboard','log','simulation'].forEach(function(x){
     el('tab-'+x).style.display=x===t?'block':'none';
     el('nb-'+x).classList.toggle('active',x===t);
@@ -1378,6 +1418,7 @@ el('tradeRisk').addEventListener('input',function(){ riskInputDirty=true; update
 window.addEventListener('resize',function(){
   if(!isDesktop()){ closeDrawer(); }
   else if(!cfg.accountSize){ openDrawer(); }
+  if(cfg.accountSize)showTab(currentTab==='setup'?'dashboard':currentTab);
   updateMobileCta();
 });
 

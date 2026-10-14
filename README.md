@@ -33,3 +33,7 @@ node --test tests/*.test.cjs
 ## Release checks
 
 Before merging, verify desktop and 390px mobile layouts, keyboard focus, reload recovery or result freshness, and any changed data import/export flow. CI runs on pull requests and pushes to main. Production publishing remains separate from PR validation.
+
+## Interface
+
+The interface separates Dashboard, Trade Log, and Simulation on both desktop and mobile. Risk and challenge metrics have distinct hierarchy; the trade history stays alongside the desktop dashboard.
